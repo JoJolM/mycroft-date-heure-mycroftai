@@ -20,11 +20,11 @@ from mycroft.skills.core import resting_screen_handler
 class HorlogeSkill(MycroftSkill):
 
     def __init__(self):
-        #print("__init__")
-        print("1")
+        print("__init__")
+        #print("1")
         super(HorlogeSkill, self).__init__("HorlogeSkill")
         self.astral = Astral()
-        self.display_time = None
+        self.displayed_time = None
         self.display_tz = None
         self.answering_query = False 
 
@@ -81,7 +81,7 @@ class HorlogeSkill(MycroftSkill):
         for timezone in timezones:
             if locale.lower() == timezone.lower():
                 # suppose que la traduction est correcte
-                return pytz.timezone(timezone[timezone].strip())
+                return pytz.timezone(timezones[timezone].strip())
         target = locale.lower()
         best = None 
         for name in pytz.all_timezones:
@@ -101,7 +101,7 @@ class HorlogeSkill(MycroftSkill):
             say = re.sub(r"([a-z])([A-Z])",r"\g<1> \g<2>", best[1])
             say = say.replace("_"," ")
             say = say.split("/")
-            say.reverse
+            say.reverse()
             say = " ".join(say)
             if self.ask_yesno("vouliez.vous.dire",  data={"zone_name": say}) == "yes":
                 return pytz.timezone(best[1])
@@ -174,7 +174,7 @@ class HorlogeSkill(MycroftSkill):
         #print("10")
         if display_time:
             if self.platform == "mycroft_mark_1":
-                self.display_gui(dislplay_time)
+                self.display_gui(display_time)
             self.display_gui(display_time)
             
     def display_gui(self, display_time):
@@ -207,7 +207,7 @@ class HorlogeSkill(MycroftSkill):
 
         if self.settings.get("show_time", False):
 
-            if (force is True) or self._is__display_idle():
+            if (force is True) or self._is_display_idle():
                 current_time = self.get_display_current_time()
                 if self.displayed_time != current_time:
                     self.displayed_time = current_time
@@ -217,7 +217,7 @@ class HorlogeSkill(MycroftSkill):
             else :
                 self.displayed_time = None
         else :
-            if self.display_time:
+            if self.displayed_time:
                 if self._is_display_idle():
                     self.enclosure.display_manager.remove_active()
                 self.displayed_time = None
@@ -267,7 +267,7 @@ class HorlogeSkill(MycroftSkill):
         if not current_time:
             return
         #l'énonce
-        self.speak_dialog("", {"time": current_time})
+        self.speak_dialog("temps", {"time": current_time})
 
         # affiche l'heure 
         self.answering_query = True
@@ -278,9 +278,10 @@ class HorlogeSkill(MycroftSkill):
         self.displayed_time = None
 
     @intent_file_handler("Quelle.heure.sera.t.il.intent")
+
     def handle_query_future_time(self, message):
-        #print("handle_query_future_time")
-        print("17")
+        print("handle_query_future_time")
+        #print("17")
         utt = normalize(message.data.get('utterance',"").lower())
         extract = extract_datetime(utt)
         if extract:
@@ -292,7 +293,14 @@ class HorlogeSkill(MycroftSkill):
             return
 
         #l'énonce
-        self.speak_dialog("temps.futur")
+        self.speak_dialog("temps.futur", {"time": future_time})
+
+        self.answering_query = True
+        self.display(self.get_display_current_time(location, dt))
+        time.sleep(5)
+        mycroft.audio.wait_while_speaking()
+        self.answering_query = False
+        self.displayed_time = None
 
 def create_skill():
     return HorlogeSkill()

@@ -1,2 +1,2 @@
-quelle heure sera t il dans {offset} (heure|minutes|secondes)
-quelle heure il est dans {offset} (heure|minutes|secondes)
+quelle heure sera t il dans {offset} (hours|minutes|seconds)
+quelle heure il est dans {offset} (hours|minutes|seconds)
